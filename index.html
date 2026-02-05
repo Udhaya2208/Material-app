@@ -1,0 +1,383 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>My Material App</title>
+    
+    <link rel="icon" type="image/png" href="logo.png">
+    <link rel="apple-touch-icon" href="logo.png">
+    <link rel="shortcut icon" href="logo.png">
+    
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="theme-color" content="#0E1117">
+    
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+    
+    <style>
+        /* --- 1. DARK MODE (App Interface) --- */
+        :root {
+            --bg-dark: #0E1117;
+            --bg-sidebar: #262730;
+            --accent: #FF4B4B; 
+            --text-main: #FAFAFA;
+            --text-muted: #A0A0A0;
+            --border: #444;
+            /* PRINT COLORS */
+            --print-header-bg: #22303E;
+            --print-grey-bg: #F7F7F7;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        
+        body {
+            font-family: 'Roboto', sans-serif;
+            background-color: var(--bg-dark);
+            color: var(--text-main);
+            display: flex; height: 100vh; overflow: hidden;
+        }
+
+        /* SIDEBAR */
+        .sidebar {
+            width: 320px; background-color: var(--bg-sidebar); padding: 20px;
+            display: flex; flex-direction: column; border-right: 1px solid #333; overflow-y: auto;
+        }
+
+        /* APP VIEW LOGO */
+        .app-logo {
+            width: 80px; height: 80px; object-fit: contain;
+            display: block; margin: 0 auto 10px auto;
+            background: white; border-radius: 18px; padding: 5px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+        }
+
+        /* MAIN CONTENT */
+        .main-content { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+        .content-scroll { padding: 20px; overflow-y: auto; flex: 1; }
+
+        /* INPUTS */
+        label { display: block; margin-bottom: 5px; color: var(--text-muted); font-size: 0.85rem; }
+        input, select, textarea {
+            width: 100%; padding: 12px; margin-bottom: 15px; background: #0E1117;
+            border: 1px solid var(--border); color: white; border-radius: 6px; font-size: 0.95rem;
+        }
+
+        /* TABS */
+        .tabs { display: flex; background: var(--bg-sidebar); padding: 10px 20px; border-bottom: 1px solid #333; gap: 20px; }
+        .tab-btn {
+            background: transparent; border: none; color: var(--text-muted);
+            font-size: 1rem; font-weight: 600; cursor: pointer; padding: 10px 0; position: relative;
+        }
+        .tab-btn.active { color: white; }
+        .tab-btn.active::after {
+            content: ''; position: absolute; bottom: 0; left: 0; width: 100%; 
+            height: 3px; background: var(--accent); border-radius: 2px;
+        }
+
+        /* GRID & BUTTONS */
+        details { background: var(--bg-sidebar); border: 1px solid var(--border); border-radius: 8px; margin-bottom: 10px; overflow: hidden; }
+        summary { padding: 15px; cursor: pointer; font-weight: 600; list-style: none; display: flex; justify-content: space-between; align-items: center; }
+        .grid-container { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 10px; padding: 15px; }
+        .item-btn {
+            background: #363945; color: white; border: 1px solid #4a4d5a;
+            padding: 10px 15px; border-radius: 6px; cursor: pointer; text-align: left;
+            font-size: 0.9rem; display: flex; align-items: center; gap: 8px;
+        }
+        .item-btn:active { background: var(--accent); }
+
+        /* CART LIST */
+        .cart-item-app {
+            background: var(--bg-sidebar); padding: 15px; border-radius: 8px;
+            margin-bottom: 10px; border: 1px solid var(--border); display: flex; flex-direction: column; gap: 10px;
+        }
+        .delete-btn { color: var(--accent); background: transparent; border: 1px solid var(--accent); border-radius: 50%; width: 30px; height: 30px; cursor: pointer; }
+        .btn-primary {
+            background: var(--accent); color: white; border: none; width: 100%; padding: 15px;
+            border-radius: 8px; font-weight: bold; font-size: 1rem; cursor: pointer; margin-top: 20px;
+        }
+
+        /* RESPONSIVE */
+        @media (max-width: 768px) {
+            body { flex-direction: column; overflow: auto; height: auto; }
+            .sidebar { width: 100%; height: auto; border-right: none; border-bottom: 1px solid #333; }
+            .main-content { overflow: visible; }
+        }
+
+        /* --- 2. PRINT STYLES --- */
+        #print-view { display: none; }
+
+        @media print {
+            @page { margin: 0; }
+            body { background-color: white; color: black; display: block; height: auto; margin: 0; padding: 0; -webkit-print-color-adjust: exact; }
+            
+            /* Hide ALL App UI */
+            .sidebar, .tabs, .add-section, .delete-btn, .btn-primary, #search, details, #section-select, .cart-item-app { display: none !important; }
+            
+            /* Show ONLY Print View */
+            .main-content, .content-scroll, #section-cart { display: block !important; width: 100%; padding: 0; margin: 0; overflow: visible; }
+            #print-view { display: block !important; }
+
+            /* HEADER BAR */
+            .print-header-bar {
+                background-color: var(--print-header-bg) !important;
+                color: white; padding: 20px 40px;
+                display: flex; justify-content: space-between; align-items: center;
+                margin-bottom: 20px;
+            }
+            .print-header-text { font-size: 24px; font-weight: bold; text-transform: uppercase; }
+            
+            /* PRINT LOGO */
+            .print-logo {
+                height: 50px; width: auto; object-fit: contain;
+                background: white; padding: 5px; border-radius: 5px;
+            }
+
+            /* COMPANY AREA */
+            .print-company-area { padding: 0 40px; margin-bottom: 20px; }
+            .print-company-name { font-size: 28px; font-weight: bold; color: #22303E; margin-bottom: 10px; }
+
+            /* GREY INFO BOX */
+            .print-info-box { background-color: var(--print-grey-bg) !important; padding: 20px; margin: 20px 40px; }
+            .print-info-text { font-size: 14px; line-height: 1.6; color: #000; }
+
+            /* TABLE STYLING */
+            .print-table { width: calc(100% - 80px); margin: 20px 40px; border-collapse: collapse; }
+            .print-table th {
+                background-color: var(--print-header-bg) !important; color: white !important;
+                padding: 12px; text-align: center; font-weight: bold; font-size: 14px; border: 1px solid #000;
+            }
+            .print-table th:nth-child(2) { text-align: left; }
+            .print-table td { border: 1px solid #000; padding: 12px; font-size: 14px; text-align: center; }
+            .print-table td:nth-child(2) { text-align: left; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="sidebar">
+        <img src="logo.png" class="app-logo" alt="App Logo">
+
+        <h2 style="text-align: center;">My Material</h2>
+        <br>
+        <label>Your Company</label>
+        <input type="text" id="company" value="Best Build Constructions">
+        <label>Client Name</label>
+        <input type="text" id="client" placeholder="Client Name">
+        <label>Project</label>
+        <input type="text" id="project" placeholder="Project Name">
+        <label>Location</label>
+        <input type="text" id="location" placeholder="Site Location">
+    </div>
+
+    <div class="main-content">
+        <div class="tabs">
+            <button class="tab-btn active" onclick="switchTab('select', this)">📦 Select Items</button>
+            <button class="tab-btn" onclick="switchTab('cart', this)">🛒 View Cart (<span id="cart-count">0</span>)</button>
+        </div>
+
+        <div class="content-scroll">
+            
+            <div id="section-select">
+                <select id="trade" onchange="renderCatalog()">
+                    <option value="Electrician">⚡ Electrician</option>
+                    <option value="Plumbing">💧 Plumbing</option>
+                    <option value="Carpenter">🪚 Carpenter</option>
+                </select>
+
+                <input type="text" id="search" placeholder="🔍 Search items..." onkeyup="filterItems()">
+                <div id="catalog-container"></div>
+                <br>
+                <details>
+                    <summary>➕ Add Custom Item</summary>
+                    <div style="padding:15px; display:flex; gap:10px;">
+                        <input type="text" id="cust-name" placeholder="Item Name" style="margin:0;">
+                        <input type="text" id="cust-unit" placeholder="Unit" style="margin:0; width:80px;">
+                        <button class="item-btn" style="justify-content:center; width:auto;" onclick="addCustom()">Add</button>
+                    </div>
+                </details>
+            </div>
+
+            <div id="section-cart" style="display: none;">
+                
+                <div id="print-view">
+                    <div class="print-header-bar">
+                        <img src="logo.png" class="print-logo" alt="Logo">
+                        <span class="print-header-text">MATERIAL LIST</span>
+                    </div>
+                    
+                    <div class="print-company-area">
+                        <div class="print-company-name" id="p-company">Company Name</div>
+                    </div>
+
+                    <div class="print-info-box">
+                        <div class="print-info-text">
+                            <strong>Client:</strong> <span id="p-client">Client Name</span><br>
+                            <strong>Project:</strong> <span id="p-project">Project Name</span> | 
+                            <strong>Loc:</strong> <span id="p-location">Location</span>
+                        </div>
+                    </div>
+
+                    <table class="print-table">
+                        <thead>
+                            <tr><th style="width: 50px;">#</th><th>Item Description</th><th style="width: 150px;">Spec/Color</th><th style="width: 100px;">Qty</th></tr>
+                        </thead>
+                        <tbody id="print-table-body"></tbody>
+                    </table>
+                </div>
+
+                <div id="cart-list"></div>
+
+                <div class="add-section">
+                    <h3 style="margin-top:20px; color:#A0A0A0; font-size:0.9rem;">Final Notes</h3>
+                    <textarea id="notes" placeholder="Instructions..."></textarea>
+                    <button class="btn-primary" onclick="generatePDF()">📥 SAVE AS PDF</button>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <script>
+        // --- 🟢 100% FULL DATABASE RESTORED ---
+        const DB = {
+            "Electrician": {
+                "Wires & Cables": {
+                    unit: "Coils", 
+                    items: ["0.75mm Wire", "1.0mm Wire", "1.5mm Wire", "2.5mm Wire", "4.0mm Wire", "6.0mm Wire", "10.0mm Wire", "16.0mm Wire", "Inverter Wire", "TV Coaxial Cable", "CAT6 LAN Cable", "Telephone Pair Cable", "CCTV 3+1 Cable", "Speaker Wire"]
+                },
+                "Conduits (Pipes)": {
+                    unit: "Nos", 
+                    items: ["20mm PVC Conduit (HMS)", "25mm PVC Conduit (HMS)", "20mm Bends", "25mm Bends", "20mm Couplers", "25mm Couplers", "Deep Junction Box 1-Way", "Deep Junction Box 2-Way", "Deep Junction Box 3-Way", "Deep Junction Box 4-Way", "Fan Box (Heavy)", "Saddles/Clamps", "Flexible Pipe (Roll)"]
+                },
+                "Switches & Accessories": {
+                    unit: "Nos", 
+                    items: ["1-Way Switch", "2-Way Switch", "Bell Push Switch", "6A Socket", "16A Power Socket", "20A AC Socket", "Fan Regulator (Step)", "Dimmer", "Indicator Lamp", "Blank/Dummy Plate", "USB Charger Socket", "Foot Light Unit", "Shaver Socket", "Key Tag Switch (Hotel)"]
+                },
+                "Modular Plates & Boxes": {
+                    unit: "Nos", 
+                    items: ["1M Plate", "2M Plate", "3M Plate", "4M Plate", "6M Plate", "8M Plate (Horizontal)", "8M Plate (Square)", "12M Plate", "18M Plate", "Concealed Metal Box (1M-2M)", "Concealed Metal Box (3M)", "Concealed Metal Box (4M)", "Concealed Metal Box (6M)", "Concealed Metal Box (8M)", "Concealed Metal Box (12M)", "Concealed Metal Box (18M)", "Surface Box (PVC)"]
+                },
+                "Lighting": {
+                    unit: "Nos", 
+                    items: ["LED Bulb 9W", "LED Bulb 12W", "Tube Light 20W", "Panel Light 6W", "Panel Light 12W", "Panel Light 18W", "COB Spot Light", "Profile Light (Mtr)", "Strip Light (Roll)", "Driver/Choke", "Angle Holder", "Batten Holder", "Jumbo Holder", "Ceiling Rose"]
+                },
+                "Protection (MCB/DB)": {
+                    unit: "Nos", 
+                    items: ["SP MCB (6A-32A)", "DP MCB", "TPN MCB", "RCCB (ELCB)", "Isolator 40A", "Isolator 63A", "Changeover Switch", "DB Box 4-Way SPN", "DB Box 8-Way SPN", "DB Box 12-Way SPN", "DB Box 4-Way TPN", "DB Box 8-Way TPN"]
+                },
+                "Earthing & Mains": {
+                    unit: "Nos", 
+                    items: ["Copper Plate", "GI Plate", "Earthing Rod", "Salt (50kg Bag)", "Coal (50kg Bag)", "Funnel & Pipe", "8 SWG Copper Wire", "10 SWG GI Wire", "Main Service Wire (Aluminum)"]
+                },
+                "Consumables": {
+                    unit: "Pcs", 
+                    items: ["PVC Insulation Tape (Red/Yel/Blu/Blk/Grn)", "Rawl Plugs (Gitti)", "Cable Ties (4 inch)", "Cable Ties (8 inch)", "Nails", "Casing Capping", "Dummy Cover"]
+                }
+            },
+            "Plumbing": {
+                "CPVC Pipes & Fittings": {
+                    unit: "Pcs", 
+                    items: ["CPVC Pipe 3/4\"", "CPVC Pipe 1\"", "CPVC Pipe 1.25\"", "CPVC Pipe 1.5\"", "Elbow 90°", "Elbow 45°", "Tee", "Coupler (Socket)", "Union", "Reducer Bush", "Brass Elbow (F)", "Brass Tee (F)", "Brass MTA", "Brass FTA", "End Cap", "Cross Tee", "Ball Valve (Compact)", "Tank Nipple"]
+                },
+                "PVC (SWR) Drainage": {
+                    unit: "Pcs", 
+                    items: ["4\" PVC Pipe (Type A)", "4\" PVC Pipe (Type B)", "6\" PVC Pipe", "4\" Bend 90°", "4\" Shoe 45°", "4\" Tee (Plain)", "4\" Tee (Door)", "4\" Y-Tee", "4\" Cowl (Vent)", "4\" Nahani Trap", "Multi-Floor Trap", "Pipe Clips/Clamps", "Cleaning Pipe"]
+                },
+                "Water Tank": {
+                    unit: "Nos", 
+                    items: ["Water Tank 500L", "Water Tank 750L", "Water Tank 1000L", "Water Tank 1500L", "Tank Lid", "Ball Valve (Brass) 1\"", "Check Nut", "Water Level Alarm"]
+                },
+                "Bathroom Fittings (CP)": {
+                    unit: "Nos", 
+                    items: ["Bib Cock (Tap)", "Long Body Bib Cock", "Pillar Cock (Basin)", "Angle Valve", "2-Way Angle Valve", "Concealed Stop Cock", "Wall Mixer (Telephonic)", "Diverter Body", "Spout", "Shower Arm", "Overhead Shower", "Health Faucet (Gun)", "Connection Pipe 18\"", "Connection Pipe 24\"", "Waste Pipe", "Bottle Trap", "Floor Jali (Grating)"]
+                },
+                "Pumps & Motors": {
+                    unit: "Nos", 
+                    items: ["Monoblock Pump 0.5HP", "Monoblock Pump 1HP", "Submersible Pump 1HP", "Submersible Pump 1.5HP", "Pressure Pump", "Automatic Controller"]
+                },
+                "Consumables (Solvents)": {
+                    unit: "Nos", 
+                    items: ["CPVC Solvent (Yellow)", "UPVC Solvent (Blue)", "PVC Solvent (Grey)", "Teflon Tape", "M-Seal", "White Cement", "Shellac", "Hacksaw Blade", "Thread (Dhaaga)"]
+                }
+            },
+            "Carpenter": {
+                "Plywood & Boards": {
+                    unit: "Sheets", 
+                    items: ["6mm Marine Ply", "12mm Marine Ply", "18mm Marine Ply", "19mm Block Board", "12mm Commercial Ply", "18mm Commercial Ply", "MDF Board", "Particle Board", "Cement Sheet (Bison)", "Flexy Ply"]
+                },
+                "Laminates (Mica)": {
+                    unit: "Sheets", 
+                    items: ["1.0mm Laminate (Color/Texture)", "0.8mm Laminate", "Inner Mica (White/Off-white)", "PVC Laminate", "Acrylic Sheet", "Charcoal Sheet", "Veneer Sheet", "Edge Banding Tape (Roll)"]
+                },
+                "Door Hardware": {
+                    unit: "Set", 
+                    items: ["SS Hinges (3 inch)", "SS Hinges (4 inch)", "SS Hinges (5 inch)", "Main Door Lock (Mortise)", "Cylindrical Lock", "Padlock", "Door Handle (Main)", "Tower Bolt 4\"", "Tower Bolt 6\"", "Tower Bolt 8\"", "Door Stopper (Magnetic)", "Door Stopper (Rubber)", "Door Closer", "Door Eye", "Baby Latch"]
+                },
+                "Furniture Hardware": {
+                    unit: "Set", 
+                    items: ["Telescopic Channel 10\"", "Telescopic Channel 12\"", "Telescopic Channel 14\"", "Telescopic Channel 16\"", "Telescopic Channel 18\"", "Telescopic Channel 20\"", "Auto Hinges (0 Crank)", "Auto Hinges (8 Crank)", "Auto Hinges (16 Crank)", "Gas Spring (Hydraulic)", "Cabinet Handle (C-Type)", "Knobs", "Magnets", "Drawer Lock", "Multipurpose Lock", "Glass Shelf Bracket", "Mirror Studs"]
+                },
+                "Wood & Beading": {
+                    unit: "Rft", 
+                    items: ["Teak Wood Beading (Half Round)", "Teak Wood Beading (Flat)", "Teak Wood Lippings", "Pine Wood Batten", "Door Frame (Chaukhat)"]
+                },
+                "Adhesives & Fasteners": {
+                    unit: "Kg", 
+                    items: ["Fevicol SH", "Fevicol Marine", "Fevicol HeatX", "Masking Tape", "Araldite", "Silicone Sealant", "Wire Nails (1\", 1.5\", 2\", 3\")", "Headless Nails", "Panel Pins", "Black Screws (1/2\" to 3\")", "SS Screws (1/2\" to 3\")", "Expansion Bolts (Fasteners)", "L-Brackets"]
+                }
+            }
+        };
+
+        let cart = [];
+
+        function renderCatalog() {
+            const trade = document.getElementById('trade').value;
+            const container = document.getElementById('catalog-container'); container.innerHTML = "";
+            for (const [category, data] of Object.entries(DB[trade])) {
+                const details = document.createElement('details'); details.open = true; details.innerHTML = `<summary>${category}</summary>`;
+                const grid = document.createElement('div'); grid.className = 'grid-container';
+                data.items.forEach(item => {
+                    const btn = document.createElement('button'); btn.className = 'item-btn'; btn.innerHTML = `<span>+</span> ${item}`;
+                    btn.onclick = () => addToCart(item, data.unit); grid.appendChild(btn);
+                });
+                details.appendChild(grid); container.appendChild(details);
+            }
+        }
+
+        function addToCart(name, unit) { cart.push({ name: name, unit: unit, qty: "1", spec: "" }); updateCartUI(); }
+        function addCustom() { const name=document.getElementById('cust-name').value; const unit=document.getElementById('cust-unit').value||"Pcs"; if(name){addToCart(name,unit);document.getElementById('cust-name').value="";}}
+
+        function updateCartUI() {
+            document.getElementById('cart-count').innerText = cart.length;
+            const list = document.getElementById('cart-list'); list.innerHTML = "";
+            if(cart.length === 0) { list.innerHTML = "<div style='text-align:center; padding:40px; color:#555;'>Cart is empty.</div>"; return; }
+            cart.forEach((item, index) => {
+                let specInput = `<input type="text" placeholder="Spec" value="${item.spec}" oninput="cart[${index}].spec = this.value" style="margin:0; flex:1.5;">`;
+                if (item.name.toLowerCase().includes("wire")) { specInput = `<select onchange="cart[${index}].spec=this.value" style="margin:0; flex:1.5;"><option value="">Color</option><option value="Red">Red</option><option value="Black">Black</option><option value="Blue">Blue</option></select>`; }
+                const div = document.createElement('div'); div.className = 'cart-item-app';
+                div.innerHTML = `<div style="display:flex; justify-content:space-between;"><b>${index+1}. ${item.name}</b><button class="delete-btn" onclick="cart.splice(${index}, 1); updateCartUI();">✕</button></div><div style="display:flex; gap:10px;">${specInput}<div style="flex:1; display:flex;"><input type="number" value="${item.qty}" oninput="cart[${index}].qty=this.value" style="text-align:center; border-radius:5px 0 0 5px;"><span style="padding:12px; background:#333; color:#ccc; border:1px solid #444; border-radius:0 5px 5px 0;">${item.unit}</span></div></div>`;
+                list.appendChild(div);
+            });
+        }
+
+        function generatePDF() {
+            if(cart.length === 0) return alert("Cart is empty!");
+            document.getElementById('p-company').innerText = document.getElementById('company').value;
+            document.getElementById('p-client').innerText = document.getElementById('client').value;
+            document.getElementById('p-project').innerText = document.getElementById('project').value;
+            document.getElementById('p-location').innerText = document.getElementById('location').value;
+            const tbody = document.getElementById('print-table-body'); tbody.innerHTML = "";
+            cart.forEach((item, index) => {
+                const tr = document.createElement('tr'); tr.innerHTML = `<td>${index + 1}</td><td>${item.name}</td><td>${item.spec}</td><td>${item.qty} ${item.unit}</td>`; tbody.appendChild(tr);
+            });
+            window.print();
+        }
+
+        function filterItems() { const q=document.getElementById('search').value.toLowerCase(); document.querySelectorAll('.item-btn').forEach(b=>{const m=b.innerText.toLowerCase().includes(q);b.style.display=m?'flex':'none';if(m)b.parentElement.parentElement.open=true;});}
+        function switchTab(t,b){document.getElementById('section-select').style.display='none';document.getElementById('section-cart').style.display='none';document.getElementById('section-'+t).style.display='block';document.querySelectorAll('.tab-btn').forEach(x=>x.classList.remove('active'));b.classList.add('active');if(t==='cart')updateCartUI();}
+        renderCatalog();
+    </script>
+</body>
+</html>
