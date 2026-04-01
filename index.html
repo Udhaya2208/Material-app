@@ -14,14 +14,13 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="theme-color" content="#0E1117">
     
-    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
-    
     <style>
         /* --- 1. DARK MODE (App Interface) --- */
         :root {
             --bg-dark: #0E1117;
             --bg-sidebar: #262730;
             --accent: #FF4B4B; 
+            --accent-hover: #ff2a2a;
             --text-main: #FAFAFA;
             --text-muted: #A0A0A0;
             --border: #444;
@@ -33,7 +32,7 @@
         * { box-sizing: border-box; margin: 0; padding: 0; }
         
         body {
-            font-family: 'Roboto', sans-serif;
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
             background-color: var(--bg-dark);
             color: var(--text-main);
             display: flex; height: 100vh; overflow: hidden;
@@ -58,10 +57,13 @@
         .content-scroll { padding: 20px; overflow-y: auto; flex: 1; }
 
         /* INPUTS */
-        label { display: block; margin-bottom: 5px; color: var(--text-muted); font-size: 0.85rem; }
+        label { display: block; margin-bottom: 5px; color: var(--text-muted); font-size: 0.85rem; font-weight: bold; }
         input, select, textarea {
-            width: 100%; padding: 12px; margin-bottom: 15px; background: #0E1117;
+            width: 100%; padding: 12px; margin-bottom: 15px; background: #161a22;
             border: 1px solid var(--border); color: white; border-radius: 6px; font-size: 0.95rem;
+        }
+        input:focus, select:focus, textarea:focus {
+            border-color: var(--accent); outline: none;
         }
 
         /* TABS */
@@ -80,23 +82,33 @@
         details { background: var(--bg-sidebar); border: 1px solid var(--border); border-radius: 8px; margin-bottom: 10px; overflow: hidden; }
         summary { padding: 15px; cursor: pointer; font-weight: 600; list-style: none; display: flex; justify-content: space-between; align-items: center; }
         .grid-container { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 10px; padding: 15px; }
+        
+        /* 🟢 FIXED: Made item buttons look more clickable */
         .item-btn {
-            background: #363945; color: white; border: 1px solid #4a4d5a;
-            padding: 10px 15px; border-radius: 6px; cursor: pointer; text-align: left;
-            font-size: 0.9rem; display: flex; align-items: center; gap: 8px;
+            background: #2a2d3a; color: white; border: 1px solid #4a4d5a;
+            padding: 12px; border-radius: 8px; cursor: pointer; text-align: left;
+            font-size: 0.9rem; display: flex; align-items: center; gap: 10px;
+            transition: all 0.2s ease;
         }
-        .item-btn:active { background: var(--accent); }
+        .item-btn:hover { background: #363945; border-color: var(--text-muted); }
+        .item-btn:active { background: var(--accent); border-color: var(--accent); transform: scale(0.98); }
+        .add-icon { color: var(--accent); font-weight: bold; font-size: 1.2rem; }
+        .item-btn:active .add-icon { color: white; }
 
         /* CART LIST */
         .cart-item-app {
             background: var(--bg-sidebar); padding: 15px; border-radius: 8px;
             margin-bottom: 10px; border: 1px solid var(--border); display: flex; flex-direction: column; gap: 10px;
         }
-        .delete-btn { color: var(--accent); background: transparent; border: 1px solid var(--accent); border-radius: 50%; width: 30px; height: 30px; cursor: pointer; }
+        .delete-btn { color: var(--accent); background: transparent; border: 1px solid var(--accent); border-radius: 50%; width: 30px; height: 30px; cursor: pointer; display: flex; align-items: center; justify-content: center; font-weight: bold; }
+        .delete-btn:hover { background: var(--accent); color: white; }
+        
         .btn-primary {
             background: var(--accent); color: white; border: none; width: 100%; padding: 15px;
-            border-radius: 8px; font-weight: bold; font-size: 1rem; cursor: pointer; margin-top: 20px;
+            border-radius: 8px; font-weight: bold; font-size: 1.1rem; cursor: pointer; margin-top: 20px;
+            transition: background 0.2s;
         }
+        .btn-primary:hover { background: var(--accent-hover); }
 
         /* RESPONSIVE */
         @media (max-width: 768px) {
@@ -151,13 +163,23 @@
             .print-table th:nth-child(2) { text-align: left; }
             .print-table td { border: 1px solid #000; padding: 12px; font-size: 14px; text-align: center; }
             .print-table td:nth-child(2) { text-align: left; }
+
+            /* 🟢 FIXED: Print styles for Notes Section */
+            .print-notes-section {
+                margin: 30px 40px;
+                padding-top: 15px;
+                border-top: 2px solid #ddd;
+                display: none; /* Hidden by default, shown via JS if notes exist */
+            }
+            .print-notes-title { font-weight: bold; font-size: 16px; margin-bottom: 8px; color: #22303E; }
+            .print-notes-content { font-size: 14px; white-space: pre-wrap; color: #333; }
         }
     </style>
 </head>
 <body>
 
     <div class="sidebar">
-        <img src="logo.png" class="app-logo" alt="App Logo">
+        <img src="logo.png" class="app-logo" alt="App Logo" onerror="this.style.display='none'">
 
         <h2 style="text-align: center;">My Material</h2>
         <br>
@@ -165,9 +187,9 @@
         <input type="text" id="company" value="Best Build Constructions">
         <label>Client Name</label>
         <input type="text" id="client" placeholder="Client Name">
-        <label>Project</label>
+        <label>Project Name</label>
         <input type="text" id="project" placeholder="Project Name">
-        <label>Location</label>
+        <label>Site Location</label>
         <input type="text" id="location" placeholder="Site Location">
     </div>
 
@@ -180,21 +202,24 @@
         <div class="content-scroll">
             
             <div id="section-select">
+                <label>Select Category</label>
                 <select id="trade" onchange="renderCatalog()">
                     <option value="Electrician">⚡ Electrician</option>
                     <option value="Plumbing">💧 Plumbing</option>
                     <option value="Carpenter">🪚 Carpenter</option>
                 </select>
 
-                <input type="text" id="search" placeholder="🔍 Search items..." onkeyup="filterItems()">
+                <input type="text" id="search" placeholder="🔍 Search for an item..." onkeyup="filterItems()">
+                
                 <div id="catalog-container"></div>
+                
                 <br>
                 <details>
-                    <summary>➕ Add Custom Item</summary>
+                    <summary>➕ Add Custom Item (Not in list)</summary>
                     <div style="padding:15px; display:flex; gap:10px;">
-                        <input type="text" id="cust-name" placeholder="Item Name" style="margin:0;">
-                        <input type="text" id="cust-unit" placeholder="Unit" style="margin:0; width:80px;">
-                        <button class="item-btn" style="justify-content:center; width:auto;" onclick="addCustom()">Add</button>
+                        <input type="text" id="cust-name" placeholder="Enter Item Name" style="margin:0;">
+                        <input type="text" id="cust-unit" placeholder="Unit (e.g. Kg)" style="margin:0; width:100px;">
+                        <button class="btn-primary" style="margin:0; width:auto; padding: 10px 20px;" onclick="addCustom()">Add</button>
                     </div>
                 </details>
             </div>
@@ -203,7 +228,7 @@
                 
                 <div id="print-view">
                     <div class="print-header-bar">
-                        <img src="logo.png" class="print-logo" alt="Logo">
+                        <img src="logo.png" class="print-logo" alt="Logo" onerror="this.style.display='none'">
                         <span class="print-header-text">MATERIAL LIST</span>
                     </div>
                     
@@ -225,14 +250,20 @@
                         </thead>
                         <tbody id="print-table-body"></tbody>
                     </table>
+
+                    <div class="print-notes-section" id="print-notes-section">
+                        <div class="print-notes-title">Instructions / Notes:</div>
+                        <div class="print-notes-content" id="p-notes"></div>
+                    </div>
                 </div>
 
                 <div id="cart-list"></div>
 
                 <div class="add-section">
-                    <h3 style="margin-top:20px; color:#A0A0A0; font-size:0.9rem;">Final Notes</h3>
-                    <textarea id="notes" placeholder="Instructions..."></textarea>
-                    <button class="btn-primary" onclick="generatePDF()">📥 SAVE AS PDF</button>
+                    <label style="margin-top:20px; text-transform:uppercase; font-size:0.8rem;">Final Instructions</label>
+                    <textarea id="notes" placeholder="Type any special notes or instructions for the shop here..." rows="3"></textarea>
+                    
+                    <button class="btn-primary" onclick="generatePDF()">📥 GENERATE PDF INVOICE</button>
                 </div>
             </div>
 
@@ -240,7 +271,6 @@
     </div>
 
     <script>
-        // --- 🟢 100% FULL DATABASE RESTORED ---
         const DB = {
             "Electrician": {
                 "Wires & Cables": {
@@ -334,51 +364,152 @@
 
         function renderCatalog() {
             const trade = document.getElementById('trade').value;
-            const container = document.getElementById('catalog-container'); container.innerHTML = "";
+            const container = document.getElementById('catalog-container'); 
+            container.innerHTML = "";
+            
             for (const [category, data] of Object.entries(DB[trade])) {
-                const details = document.createElement('details'); details.open = true; details.innerHTML = `<summary>${category}</summary>`;
-                const grid = document.createElement('div'); grid.className = 'grid-container';
+                const details = document.createElement('details'); 
+                details.open = true; 
+                details.innerHTML = `<summary>${category}</summary>`;
+                
+                const grid = document.createElement('div'); 
+                grid.className = 'grid-container';
+                
                 data.items.forEach(item => {
-                    const btn = document.createElement('button'); btn.className = 'item-btn'; btn.innerHTML = `<span>+</span> ${item}`;
-                    btn.onclick = () => addToCart(item, data.unit); grid.appendChild(btn);
+                    const btn = document.createElement('button'); 
+                    btn.className = 'item-btn'; 
+                    // 🟢 FIXED: Added add-icon class for clear UI
+                    btn.innerHTML = `<span class="add-icon">+</span> <span style="flex:1;">${item}</span>`;
+                    btn.onclick = () => {
+                        addToCart(item, data.unit);
+                        // Brief flash effect
+                        btn.style.borderColor = "var(--accent)";
+                        setTimeout(() => btn.style.borderColor = "", 200);
+                    }; 
+                    grid.appendChild(btn);
                 });
-                details.appendChild(grid); container.appendChild(details);
+                details.appendChild(grid); 
+                container.appendChild(details);
             }
         }
 
-        function addToCart(name, unit) { cart.push({ name: name, unit: unit, qty: "1", spec: "" }); updateCartUI(); }
-        function addCustom() { const name=document.getElementById('cust-name').value; const unit=document.getElementById('cust-unit').value||"Pcs"; if(name){addToCart(name,unit);document.getElementById('cust-name').value="";}}
+        function addToCart(name, unit) { 
+            cart.push({ name: name, unit: unit, qty: "1", spec: "" }); 
+            updateCartUI(); 
+            // Give visual feedback by switching to cart tab if mobile
+            if(window.innerWidth <= 768 && cart.length === 1) {
+                switchTab('cart', document.querySelectorAll('.tab-btn')[1]);
+            }
+        }
+        
+        function addCustom() { 
+            const name = document.getElementById('cust-name').value; 
+            const unit = document.getElementById('cust-unit').value || "Pcs"; 
+            if(name) {
+                addToCart(name, unit);
+                document.getElementById('cust-name').value = "";
+                document.getElementById('cust-unit').value = "";
+            }
+        }
 
         function updateCartUI() {
             document.getElementById('cart-count').innerText = cart.length;
-            const list = document.getElementById('cart-list'); list.innerHTML = "";
-            if(cart.length === 0) { list.innerHTML = "<div style='text-align:center; padding:40px; color:#555;'>Cart is empty.</div>"; return; }
+            const list = document.getElementById('cart-list'); 
+            list.innerHTML = "";
+            
+            if(cart.length === 0) { 
+                list.innerHTML = "<div style='text-align:center; padding:40px; color:#555; background:var(--bg-sidebar); border-radius:8px; border:1px dashed #444;'>🛒 Cart is empty.<br><br>Go back to 'Select Items' to add materials.</div>"; 
+                return; 
+            }
+            
             cart.forEach((item, index) => {
-                let specInput = `<input type="text" placeholder="Spec" value="${item.spec}" oninput="cart[${index}].spec = this.value" style="margin:0; flex:1.5;">`;
-                if (item.name.toLowerCase().includes("wire")) { specInput = `<select onchange="cart[${index}].spec=this.value" style="margin:0; flex:1.5;"><option value="">Color</option><option value="Red">Red</option><option value="Green">Green</option><option value="Black">Black</option><option value="Yellow">Yellow</option><option value="Blue">Blue</option></select>`; }
-                const div = document.createElement('div'); div.className = 'cart-item-app';
-                div.innerHTML = `<div style="display:flex; justify-content:space-between;"><b>${index+1}. ${item.name}</b><button class="delete-btn" onclick="cart.splice(${index}, 1); updateCartUI();">✕</button></div><div style="display:flex; gap:10px;">${specInput}<div style="flex:1; display:flex;"><input type="number" value="${item.qty}" oninput="cart[${index}].qty=this.value" style="text-align:center; border-radius:5px 0 0 5px;"><span style="padding:12px; background:#333; color:#ccc; border:1px solid #444; border-radius:0 5px 5px 0;">${item.unit}</span></div></div>`;
+                let specInput = `<input type="text" placeholder="Brand / Spec" value="${item.spec}" oninput="cart[${index}].spec = this.value" style="margin:0; flex:1.5;">`;
+                if (item.name.toLowerCase().includes("wire")) { 
+                    specInput = `<select onchange="cart[${index}].spec=this.value" style="margin:0; flex:1.5;">
+                        <option value="" ${!item.spec ? 'selected' : ''}>Color...</option>
+                        <option value="Red" ${item.spec === 'Red' ? 'selected' : ''}>Red</option>
+                        <option value="Green" ${item.spec === 'Green' ? 'selected' : ''}>Green</option>
+                        <option value="Black" ${item.spec === 'Black' ? 'selected' : ''}>Black</option>
+                        <option value="Yellow" ${item.spec === 'Yellow' ? 'selected' : ''}>Yellow</option>
+                        <option value="Blue" ${item.spec === 'Blue' ? 'selected' : ''}>Blue</option>
+                    </select>`; 
+                }
+                
+                const div = document.createElement('div'); 
+                div.className = 'cart-item-app';
+                div.innerHTML = `
+                    <div style="display:flex; justify-content:space-between; align-items:center;">
+                        <b style="font-size:1.05rem;">${index+1}. ${item.name}</b>
+                        <button class="delete-btn" onclick="cart.splice(${index}, 1); updateCartUI();" title="Remove Item">✕</button>
+                    </div>
+                    <div style="display:flex; gap:10px;">
+                        ${specInput}
+                        <div style="flex:1; display:flex;">
+                            <input type="number" min="1" value="${item.qty}" oninput="cart[${index}].qty=this.value" style="text-align:center; border-radius:5px 0 0 5px; margin:0;">
+                            <span style="padding:12px; background:#2a2d3a; color:#ccc; border:1px solid var(--border); border-left:none; border-radius:0 5px 5px 0; font-size:0.85rem; display:flex; align-items:center;">${item.unit}</span>
+                        </div>
+                    </div>`;
                 list.appendChild(div);
             });
         }
 
         function generatePDF() {
-            if(cart.length === 0) return alert("Cart is empty!");
-            document.getElementById('p-company').innerText = document.getElementById('company').value;
-            document.getElementById('p-client').innerText = document.getElementById('client').value;
-            document.getElementById('p-project').innerText = document.getElementById('project').value;
-            document.getElementById('p-location').innerText = document.getElementById('location').value;
-            const tbody = document.getElementById('print-table-body'); tbody.innerHTML = "";
+            if(cart.length === 0) {
+                alert("Please add at least one item to the cart first!");
+                return;
+            }
+            
+            // 1. Fill Text Fields
+            document.getElementById('p-company').innerText = document.getElementById('company').value || "Company Name";
+            document.getElementById('p-client').innerText = document.getElementById('client').value || "_________________";
+            document.getElementById('p-project').innerText = document.getElementById('project').value || "_________________";
+            document.getElementById('p-location').innerText = document.getElementById('location').value || "_________________";
+            
+            // 2. 🟢 FIXED: Handle Instructions/Notes Logic
+            const notesInput = document.getElementById('notes').value.trim();
+            const notesSection = document.getElementById('print-notes-section');
+            const pNotes = document.getElementById('p-notes');
+            
+            if (notesInput !== "") {
+                pNotes.innerText = notesInput;
+                notesSection.style.display = "block"; // Show section if there are notes
+            } else {
+                notesSection.style.display = "none";  // Hide section completely if empty
+            }
+
+            // 3. Populate Table
+            const tbody = document.getElementById('print-table-body'); 
+            tbody.innerHTML = "";
             cart.forEach((item, index) => {
-                const tr = document.createElement('tr'); tr.innerHTML = `<td>${index + 1}</td><td>${item.name}</td><td>${item.spec}</td><td>${item.qty} ${item.unit}</td>`; tbody.appendChild(tr);
+                const tr = document.createElement('tr'); 
+                tr.innerHTML = `<td>${index + 1}</td><td>${item.name}</td><td>${item.spec}</td><td>${item.qty} ${item.unit}</td>`; 
+                tbody.appendChild(tr);
             });
+            
+            // 4. Trigger Native Print
             window.print();
         }
 
-        function filterItems() { const q=document.getElementById('search').value.toLowerCase(); document.querySelectorAll('.item-btn').forEach(b=>{const m=b.innerText.toLowerCase().includes(q);b.style.display=m?'flex':'none';if(m)b.parentElement.parentElement.open=true;});}
-        function switchTab(t,b){document.getElementById('section-select').style.display='none';document.getElementById('section-cart').style.display='none';document.getElementById('section-'+t).style.display='block';document.querySelectorAll('.tab-btn').forEach(x=>x.classList.remove('active'));b.classList.add('active');if(t==='cart')updateCartUI();}
+        function filterItems() { 
+            const q = document.getElementById('search').value.toLowerCase(); 
+            document.querySelectorAll('.item-btn').forEach(b => {
+                const m = b.innerText.toLowerCase().includes(q);
+                b.style.display = m ? 'flex' : 'none';
+                if(m) b.parentElement.parentElement.open = true;
+            });
+        }
+        
+        function switchTab(t, b) {
+            document.getElementById('section-select').style.display = 'none';
+            document.getElementById('section-cart').style.display = 'none';
+            document.getElementById('section-'+t).style.display = 'block';
+            document.querySelectorAll('.tab-btn').forEach(x => x.classList.remove('active'));
+            b.classList.add('active');
+            if(t === 'cart') updateCartUI();
+        }
+        
+        // Initialize App
         renderCatalog();
     </script>
 </body>
-
 </html>
